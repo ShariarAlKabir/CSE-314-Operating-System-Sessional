@@ -70,27 +70,32 @@ for dir in unzip/*/; do
     lang="UNKNOWN"
     line_count=0
     comment_count=0
+    student_id=$(basename "$dir")
 
     if find "$dir" -type f -iname "*.c" | grep -q .; then
         line_count=$(find "$dir" -type f -iname "*.c" -exec cat {} + | wc -l)
         comment_count=$(find "$dir" -type f -iname "*.c" -exec grep -c "//" {} + | awk '{s+=$1} END {print s}')
         mv "$dir" "$targets_dir"/C/
         lang="C"
+        echo "Organizing files of $student_id"
     elif find "$dir" -type f -iname "*.cpp" | grep -q .; then
         line_count=$(find "$dir" -type f -iname "*.cpp" -exec cat {} + | wc -l)
         comment_count=$(find "$dir" -type f -iname "*.cpp" -exec grep -c "//" {} + | awk '{s+=$1} END {print s}')
         mv "$dir" "$targets_dir"/C++/
         lang="C++"
+        echo "Organizing files of $student_id"
     elif find "$dir" -type f -iname "*.py" | grep -q .; then
         line_count=$(find "$dir" -type f -iname "*.py" -exec cat {} + | wc -l)
         comment_count=$(find "$dir" -type f -iname "*.py" -exec grep -c "#" {} + | awk '{s+=$1} END {print s}')
         mv "$dir" "$targets_dir"/Python/
         lang="Python"
+        echo "Organizing files of $student_id"
     elif find "$dir" -type f -iname "*.java" | grep -q .; then
         line_count=$(find "$dir" -type f -iname "*.java" -exec cat {} + | wc -l)
         comment_count=$(find "$dir" -type f -iname "*.java" -exec grep -c "//" {} + | awk '{s+=$1} END {print s}')
         mv "$dir" "$targets_dir"/Java/
         lang="Java"
+        echo "Organizing files of $student_id"
     fi
 
     student_id=$(basename "$dir")
@@ -109,9 +114,13 @@ for student_dir in "$targets_dir"/C++/*/; do
     find "$student_dir" -type f -iname "*.cpp" | while read -r cpp_file; do
         # Rename .cpp files to main.cpp
         dir_of_cpp=$(dirname "$cpp_file")
-        mv "$cpp_file" "$dir_of_cpp/main.cpp"
+        if [ "$cpp_file" != "$dir_of_cpp/main.cpp" ]; then
+            mv "$cpp_file" "$dir_of_cpp/main.cpp"
+        fi
 
         exe_file="${dir_of_cpp}/main.out"
+        student_id="${dir_of_cpp: -7}"
+        echo "Executing files of $student_id"
 
         g++ "$dir_of_cpp/main.cpp" -o "$exe_file" 2>/dev/null
         if [ $? -ne 0 ]; then
@@ -138,9 +147,12 @@ for student_dir in "$targets_dir"/C/*/; do
     find "$student_dir" -type f -iname "*.c" | while read -r c_file; do
         # Rename .c files to main.c
         dir_of_c=$(dirname "$c_file")
-        mv "$c_file" "$dir_of_c/main.c"
-
+        if [ "$c_file" != "$dir_of_c/main.c" ]; then
+            mv "$c_file" "$dir_of_c/main.c"
+        fi
         exe_file="${dir_of_c}/main.out"
+        student_id=${dir_of_c: -7}
+        echo "Executing files of $student_id"
 
         gcc "$dir_of_c/main.c" -o "$exe_file" 2>/dev/null
         if [ $? -ne 0 ]; then
@@ -167,7 +179,11 @@ for student_dir in "$targets_dir"/Java/*/; do
     find "$student_dir" -type f -iname "*.java" | while read -r java_file; do
         # Rename .java files to Main.java
         dir_of_java=$(dirname "$java_file")
-        mv "$java_file" "$dir_of_java/Main.java"
+        if [ "$java_file" != "$dir_of_java/Main.java" ]; then
+            mv "$java_file" "$dir_of_java/Main.java"
+        fi
+        student_id=${dir_of_java: -7}
+        echo "Executing files of $student_id"
 
         # Now compile the renamed Main.java
         javac "$dir_of_java/Main.java" 2>/dev/null
@@ -195,7 +211,11 @@ for student_dir in "$targets_dir"/Python/*/; do
     find "$student_dir" -type f -iname "*.py" | while read -r py_file; do
         # Rename .py files to main.py
         dir_of_py=$(dirname "$py_file")
-        mv "$py_file" "$dir_of_py/main.py"
+        if [ "$py_file" != "$dir_of_py/main.py" ]; then
+            mv "$py_file" "$dir_of_py/main.py"
+        fi
+        student_id=${dir_of_py: -7}
+        echo "Executing files of $student_id"
 
         for i in {1..5}; do
             input_file="$tests_dir/test$i.txt"
